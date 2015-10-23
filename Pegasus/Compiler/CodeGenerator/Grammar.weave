@@ -28,6 +28,39 @@ namespace
     using System;
     using System.Collections.Generic;
     using Pegasus.Common;
+
+    public interface IRuleTrace : IDisposable
+    {
+        void Return<T>(IParseResult<T> value);
+    }
+
+    public class NoTrace : IRuleTrace
+    {
+        private bool disposed = false;
+    
+        public NoTrace() {}
+        public void Return<T>(IParseResult<T> value) {}
+    
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+    
+        public virtual void Dispose(bool disposing)
+        {
+            if(this.disposed)
+            {
+                throw new InvalidOperationException("this Level was already disposed!");
+            }
+            else
+            {
+                this.disposed = true;
+                //ignore disposing variable because we arent freeing managed objects
+            }
+        }
+    }
+
     {{each @using in settings["using"]}}
         using
             {{@RenderCode @using}}
@@ -53,6 +86,10 @@ namespace
         {{if memoize}}
             private Dictionary<CacheKey, object> storage;
         {{/if}}
+
+        public virtual IRuleTrace RuleTrace(string rule, ref Cursor cursor) {
+            return new NoTrace();
+        }
 
         /// <summary>
         ///  Parses a string according to the rules of the <see cref="{{= classname }}" /> grammar.

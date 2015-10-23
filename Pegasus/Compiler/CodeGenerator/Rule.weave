@@ -16,6 +16,7 @@
     private IParseResult<{{= this.currentContext.ResultType }}> {{: model.Identifier.Name }}(ref Cursor cursor)
 {{/if}}
 {
+  using(var trace = this.RuleTrace("{{: model.Identifier.Name}}", ref cursor)) {
     IParseResult<{{= this.currentContext.ResultType }}> {{: this.currentContext.ResultName }} = null;
     {{if leftRecursive}}
         var storageKey = new CacheKey({{= ToLiteral(model.Identifier.Name) }}, cursor.StateKey, cursor.Location);
@@ -69,7 +70,9 @@
     {{else}}
         {{@WalkRule model}}
     {{/if}}
+    trace.Return({{: this.currentContext.ResultName }});
     return {{: this.currentContext.ResultName }};
+  } // using(trace)
 }
 
 {{
